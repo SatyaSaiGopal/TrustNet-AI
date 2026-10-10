@@ -1,0 +1,1 @@
+Warehouse Logistics Stock Report 2026-W41: Item SKU-8841 physical inventory count at Central Distribution Hub is verified at 420 units. Safety stock threshold is 150 units. No backorders pending. Reorder trigger set at 200 units.

@@ -126,3 +126,22 @@ def test_api_serves_frontend(client: TestClient) -> None:
     assert "TrustNet AI" in res.text
     assert "Decision Console" in res.text
 
+
+def test_api_serves_head_on_root_for_cloud_healthchecks(client: TestClient) -> None:
+    res = client.head("/")
+    assert res.status_code == 200
+
+
+def test_api_healthz_and_health_endpoints(client: TestClient) -> None:
+    res_get = client.get("/healthz")
+    assert res_get.status_code == 200
+    assert res_get.json()["status"] == "ok"
+
+    res_head = client.head("/healthz")
+    assert res_head.status_code == 200
+
+    res_health = client.get("/health")
+    assert res_health.status_code == 200
+    assert res_health.json()["status"] == "ok"
+
+

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: trustnet-ai
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m trustnet.api
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: TRUSTNET_ENVIRONMENT
+        value: production
+      - key: HOST
+        value: 0.0.0.0

@@ -77,6 +77,7 @@ demo_state = DemoState()
 
 def get_live_repository() -> Repository:
     settings = get_settings()
+    settings.database_path.parent.mkdir(parents=True, exist_ok=True)
     connection = connect(str(settings.database_path), check_same_thread=False)
     initialize(connection)
     repo = Repository(connection)
@@ -557,10 +558,18 @@ def get_source_document(filename: str) -> dict[str, Any]:
     }
 
 
+@app.api_route("/healthz", methods=["GET", "HEAD"])
+@app.api_route("/health", methods=["GET", "HEAD"])
+def health_check() -> dict[str, str]:
+    """Health check endpoint for Render, Docker, and Kubernetes probes."""
+    return {"status": "ok", "app": "TrustNet AI"}
+
+
 # Static files mount
 if STATIC_DIR.is_dir():
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-    @app.get("/")
+    @app.api_route("/", methods=["GET", "HEAD"])
     def serve_frontend() -> FileResponse:
         return FileResponse(STATIC_DIR / "index.html")
+

@@ -5,12 +5,18 @@
 .streamlit/secrets.toml
 
 # Runtime data (SQLite databases are local state, not source)
-data/
+data/*.db
+data/*.sqlite*
+data/*-journal
+data/*-wal
+data/*-shm
 *.db
 *.db-journal
 *.db-wal
 *.db-shm
 *.sqlite3
+!data/sources/
+!data/sources/**
 
 # Python
 .venv/
