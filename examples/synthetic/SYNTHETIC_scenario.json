@@ -1,0 +1,92 @@
+{
+  "_notice": "SYNTHETIC DATA. Every agent, question, answer, reference and outcome in this file is fabricated for tests and demonstrations. Nothing here describes a real model, document or fact.",
+  "synthetic": true,
+  "agents": [
+    {
+      "agent_id": "synthetic-agent-a",
+      "display_name": "Synthetic Agent A",
+      "provider": "mock",
+      "model": "deterministic-v0",
+      "is_synthetic": true
+    },
+    {
+      "agent_id": "synthetic-agent-b",
+      "display_name": "Synthetic Agent B",
+      "provider": "mock",
+      "model": "deterministic-v0",
+      "is_synthetic": true
+    },
+    {
+      "agent_id": "synthetic-agent-c",
+      "display_name": "Synthetic Agent C",
+      "provider": "mock",
+      "model": "deterministic-v0",
+      "is_synthetic": true
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "synthetic-task-001",
+      "question": "SYNTHETIC: At what temperature does the fictional compound Zentrium-7 melt?",
+      "is_synthetic": true
+    }
+  ],
+  "responses": [
+    {
+      "response_id": "synthetic-response-001",
+      "task_id": "synthetic-task-001",
+      "agent_id": "synthetic-agent-a",
+      "stance": "answer",
+      "recommendation": "412 K",
+      "rationale": "SYNTHETIC: cites a fabricated datasheet.",
+      "self_reported_confidence": 0.7,
+      "model_id": "mock:deterministic-v0",
+      "is_mock": true,
+      "evidence": [
+        {
+          "evidence_id": "synthetic-evidence-001",
+          "source_type": "document",
+          "excerpt": "SYNTHETIC: Zentrium-7 melting point: 412 K.",
+          "reference": "synthetic://datasheets/zentrium-7",
+          "verification_status": "unverified"
+        }
+      ]
+    },
+    {
+      "response_id": "synthetic-response-002",
+      "task_id": "synthetic-task-001",
+      "agent_id": "synthetic-agent-b",
+      "stance": "answer",
+      "recommendation": "530 K",
+      "rationale": "SYNTHETIC: states an answer with no source.",
+      "self_reported_confidence": 0.95,
+      "model_id": "mock:deterministic-v0",
+      "is_mock": true,
+      "evidence": [
+        {
+          "evidence_id": "synthetic-evidence-002",
+          "source_type": "model_assertion",
+          "excerpt": "SYNTHETIC: I am certain it is 530 K.",
+          "verification_status": "unverified"
+        }
+      ]
+    },
+    {
+      "response_id": "synthetic-response-003",
+      "task_id": "synthetic-task-001",
+      "agent_id": "synthetic-agent-c",
+      "stance": "abstain",
+      "rationale": "SYNTHETIC: no source available for this compound.",
+      "self_reported_confidence": 0.2,
+      "model_id": "mock:deterministic-v0",
+      "is_mock": true
+    }
+  ],
+  "outcomes": [
+    {
+      "task_id": "synthetic-task-001",
+      "correct_answer": "412 K",
+      "resolution_source": "synthetic-ground-truth"
+    }
+  ]
+}

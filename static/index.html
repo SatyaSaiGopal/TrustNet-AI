@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrustNet AI — AI Agent Trust Network</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-section">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="5" r="3"></circle>
+            <circle cx="5" cy="19" r="3"></circle>
+            <circle cx="19" cy="19" r="3"></circle>
+            <line x1="12" y1="8" x2="5" y2="16"></line>
+            <line x1="12" y1="8" x2="19" y2="16"></line>
+            <line x1="5" y1="19" x2="19" y2="19"></line>
+          </svg>
+        </div>
+        <div class="brand-title-wrap">
+          <h1>
+            TrustNet AI
+            <span class="brand-badge">Research Prototype</span>
+          </h1>
+          <div class="brand-tagline">Trust the evidence. Measure the agents.</div>
+        </div>
+      </div>
+
+      <div class="header-status">
+        <!-- Model Selector in Header -->
+        <div class="model-picker-wrap" id="modelPickerWrap" title="Switch active local Ollama model">
+          <label for="activeModelSelect" class="model-picker-label">Model:</label>
+          <select id="activeModelSelect" style="width: auto; padding: 2px 6px; font-size: 12px; height: 26px; border: none; background: transparent; font-weight: 600; cursor: pointer;">
+            <option value="llama3.2:1b">llama3.2:1b (Fast)</option>
+            <option value="gemma2:2b">gemma2:2b (Accurate)</option>
+          </select>
+        </div>
+
+        <div id="systemStatusPill" class="status-pill disconnected" title="Backend connection status">
+          <span class="status-indicator-dot" aria-hidden="true"></span>
+          <span id="systemStatusText">Connecting...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="app-nav" aria-label="Main Navigation">
+      <button class="nav-tab active" data-tab="console" id="tab-console">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+        Decision Console
+      </button>
+      <button class="nav-tab" data-tab="reliability" id="tab-reliability">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        Agent Reliability
+      </button>
+      <button class="nav-tab" data-tab="evidence" id="tab-evidence">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Evidence Inspector
+      </button>
+      <button class="nav-tab" data-tab="benchmark" id="tab-benchmark">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        Benchmark Arena
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main>
+      <!-- ================= VIEW 1: DECISION CONSOLE ================= -->
+      <section id="view-console" class="tab-view active" aria-labelledby="tab-console">
+        <!-- Task Setup Form -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Task Specification</span>
+            <!-- Mode Selector -->
+            <div class="segmented-control" role="radiogroup" aria-label="Execution Mode">
+              <button type="button" class="segmented-option active" data-mode="synthetic" id="modeBtnSynthetic" role="radio" aria-checked="true">
+                Synthetic Demo
+              </button>
+              <button type="button" class="segmented-option" data-mode="live-ollama" id="modeBtnOllama" role="radio" aria-checked="false">
+                Local Ollama
+              </button>
+              <button type="button" class="segmented-option" data-mode="live-cloud" id="modeBtnCloud" role="radio" aria-checked="false">
+                Cloud API Key
+              </button>
+            </div>
+          </div>
+
+          <!-- Cloud API Configuration Panel -->
+          <div id="cloudConfigPanel" class="cloud-config-panel" style="display: none;">
+            <div class="cloud-config-header">
+              <span class="cloud-config-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                Cloud LLM Provider Configuration
+              </span>
+              <span class="badge badge-accent" id="cloudProviderBadge">OpenAI-Compatible</span>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cloudPresetSelect">Provider Preset</label>
+                <select id="cloudPresetSelect">
+                  <option value="openai-gpt4omini">OpenAI — GPT-4o Mini (Default / Recommended)</option>
+                  <option value="openai-gpt4o">OpenAI — GPT-4o (Frontier Model)</option>
+                  <option value="groq-llama33">Groq — LLaMA 3.3 70B (High Speed)</option>
+                  <option value="openrouter">OpenRouter — Meta LLaMA 3.3 70B</option>
+                  <option value="custom">Custom OpenAI-Compatible Endpoint</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="cloudApiKeyInput">API Key <span id="cloudKeySourceBadge" class="badge badge-neutral" style="font-size: 10px; margin-left: 4px;">Session Only</span></label>
+                <div class="password-input-wrap">
+                  <input type="password" id="cloudApiKeyInput" placeholder="sk-..." autocomplete="off">
+                  <button type="button" class="btn-toggle-visibility" id="toggleApiKeyVisibilityBtn" title="Toggle visibility">👁️</button>
+                </div>
+                <div class="input-hint">Your API key is stored only in browser memory and passed over encrypted HTTPS.</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cloudBaseUrlInput">Base URL</label>
+                <input type="text" id="cloudBaseUrlInput" value="https://api.openai.com/v1">
+              </div>
+              <div class="form-group">
+                <label for="cloudModelInput">Model Name</label>
+                <input type="text" id="cloudModelInput" value="gpt-4o-mini">
+              </div>
+            </div>
+          </div>
+
+          <!-- Preset Scenario Dropdown (Showcase + Synthetic) -->
+          <div class="form-group" id="presetScenarioGroup">
+            <label for="presetSelect">Curated Domain Showcase & Benchmark Scenarios</label>
+            <select id="presetSelect">
+              <option value="">Select a domain showcase scenario...</option>
+            </select>
+            <div class="input-hint">Selecting a scenario populates the question, enterprise domain, options, and verifiable ground-truth references.</div>
+          </div>
+
+          <!-- Question Input Area -->
+          <div class="form-group">
+            <label for="questionInput">Problem / Question</label>
+            <textarea id="questionInput" placeholder="Enter a question for the agents to evaluate..." rows="3"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="categoryInput">Enterprise Domain / Category</label>
+              <select id="categoryInput">
+                <option value="healthcare">healthcare (Clinical & Pharmacology)</option>
+                <option value="cybersecurity">cybersecurity (Threats & Vulnerabilities)</option>
+                <option value="finance">finance (AML, KYC & Compliance)</option>
+                <option value="engineering">engineering (Systems & Architecture)</option>
+                <option value="legal">legal (GDPR, Contracts & Statutory)</option>
+                <option value="ledger">ledger (Accounting & Reconciliation)</option>
+                <option value="inventory">inventory (Supply Chain & Stock)</option>
+                <option value="general">general</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: flex-end;">
+              <button type="button" class="btn btn-primary" id="runAgentsBtn" style="width: 100%;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Run Agents
+              </button>
+            </div>
+          </div>
+
+          <!-- Heterogeneous Multi-Model Ensemble Option (Live Mode) -->
+          <div class="checkbox-wrap" id="ensembleOptionWrap" style="display: none; padding-top: 8px; border-top: 1px dashed var(--border-light);">
+            <input type="checkbox" id="ensembleCheckbox">
+            <label for="ensembleCheckbox" style="margin-bottom: 0; font-weight: 500; text-transform: none; color: var(--text-primary);">
+              <strong>Heterogeneous Multi-Model Ensemble</strong>: Run Analyst (<span id="analystModelBadge">llama3.2:1b</span>) and Skeptic (<span id="skepticModelBadge">gemma2:2b</span>) on diverse model families to test cross-model consensus.
+            </label>
+          </div>
+
+          <div id="liveNotice" class="input-hint" style="display: none; color: var(--text-secondary); margin-top: 8px;">
+            ℹ️ <strong>Live Mode:</strong> Agents run concurrently on your configured LLM provider. Local Ollama runs sequentially on hardware (~15-40s), while Cloud API runs within seconds.
+          </div>
+        </div>
+
+        <!-- Execution Loading Indicator -->
+        <div id="consoleLoading" class="loading-box" style="display: none;">
+          <div class="spinner" aria-hidden="true"></div>
+          <div class="loading-text" id="loadingStageText">Evaluating agent responses independently...</div>
+          <div class="loading-subtext" id="loadingSubtext">Running LangGraph workflow with Analyst, Skeptic, and Researcher.</div>
+        </div>
+
+        <!-- Execution Error Alert -->
+        <div id="consoleError" class="conflict-alert" style="display: none;">
+          <div>
+            <div class="conflict-alert-title">Execution Error</div>
+            <div id="consoleErrorText">An unexpected error occurred while executing the task.</div>
+          </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="consoleResults" style="display: none;">
+          <!-- 1. Final Decision Display -->
+          <div id="finalDecisionCard" class="decision-card decided">
+            <div class="decision-header">
+              <div>
+                <span class="decision-badge" id="decisionOutcomeBadge">Decided</span>
+              </div>
+              <div id="decisionSupportPill" class="badge badge-accent">Support: 100%</div>
+            </div>
+            <div class="decision-answer" id="decisionAnswerText">Recommendation Output</div>
+            <div class="decision-rationale" id="decisionRationaleText">Rationale explanation...</div>
+            <div class="decision-meta">
+              <span id="decisionStrategyLabel">Strategy: <strong>trust_weighted</strong></span>
+              <span id="decisionLeadingAgentLabel">Backing agents: <strong>steady</strong></span>
+              <span id="decisionAbstentionNote" style="display: none;">Safety: Abstention protects against unverified, contradictory, or unsupported recommendations.</span>
+            </div>
+
+            <!-- Enterprise Audit & Governance Action Bar -->
+            <div class="audit-action-bar">
+              <button type="button" class="btn btn-secondary" id="exportAuditJsonBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export Audit JSON
+              </button>
+              <button type="button" class="btn btn-secondary" id="viewAuditCertificateBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                View Audit Certificate
+              </button>
+            </div>
+          </div>
+
+          <!-- Conflict Alert -->
+          <div id="conflictAlert" class="conflict-alert" style="display: none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <div>
+              <div class="conflict-alert-title">Divergent Recommendations Detected</div>
+              <div id="conflictAlertText">The agents reached opposing conclusions on this problem.</div>
+            </div>
+          </div>
+
+          <!-- 2. Agent Recommendations Table -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Agent Recommendations & Weight Allocation</span>
+            </div>
+            <div class="table-container">
+              <table id="agentsTable">
+                <thead>
+                  <tr>
+                    <th>Agent / Role</th>
+                    <th>Model ID</th>
+                    <th>Stance</th>
+                    <th>Recommendation</th>
+                    <th>Stated Confidence</th>
+                    <th>TrustNet Weight</th>
+                    <th>Adjustment Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="agentsTableBody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. Strategy Comparison Grid -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Strategy Comparison</span>
+              <span class="badge badge-neutral">4 Algorithms Evaluated</span>
+            </div>
+            <div class="strategy-grid" id="strategiesGrid">
+              <!-- Dynamically populated cards for trust_weighted, majority_vote, equal_weight_vote, highest_confidence -->
+            </div>
+          </div>
+
+          <!-- 4. Outcome Recorder (Human-in-the-Loop) -->
+          <div class="recorder-box" id="outcomeRecorderPanel">
+            <div class="recorder-header">Verified Outcome (Human-in-the-Loop)</div>
+            <div class="recorder-sub">
+              Empirical trust requires verified outcomes. Recording a verified outcome enters ground truth into the SQLite repository and triggers an immediate recalculation of all agent trust profiles.
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="correctAnswerInput">Correct Answer</label>
+                <input type="text" id="correctAnswerInput" placeholder="Ground-truth answer (leave blank if unanswerable)">
+                <div class="checkbox-wrap">
+                  <input type="checkbox" id="unanswerableCheckbox">
+                  <label for="unanswerableCheckbox" style="margin-bottom: 0; font-weight: normal; text-transform: none;">
+                    Mark as unanswerable (abstaining is the correct stance)
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="resolutionSourceInput">Resolution Source</label>
+                <input type="text" id="resolutionSourceInput" placeholder="e.g. Human reviewer, System log, Official datasheet" value="Human audit">
+                <div class="input-hint">Specify who or what verified the true answer.</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary" id="recordOutcomeBtn">
+                Record Outcome & Update Trust
+              </button>
+              <button type="button" class="btn btn-secondary" id="revealSyntheticOutcomeBtn" style="display: none;">
+                Reveal Verified Ground Truth
+              </button>
+            </div>
+
+            <div id="outcomeNotification" class="notification success" style="display: none;">
+              <!-- Outcome confirmation -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 2: AGENT RELIABILITY ================= -->
+      <section id="view-reliability" class="tab-view" aria-labelledby="tab-reliability">
+        <div class="section-header">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h2>Empirical Agent Reliability Profiles</h2>
+              <p>Trust scores are mathematically derived from verified historical outcomes, calibration accuracy, evidence grounding, and abstention behavior.</p>
+            </div>
+            <button type="button" class="btn btn-secondary" id="seedDatabaseBtn" title="Seed multi-domain verified outcomes into SQLite">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Seed Multi-Domain Verified History
+            </button>
+          </div>
+        </div>
+
+        <!-- Cold Start Notice -->
+        <div class="cold-start-banner">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <div>
+            <strong>Cold-Start Threshold Notice:</strong> TrustNet requires a minimum of <strong>5 verified outcomes</strong> before an agent qualifies for history-based weighting. Untested agents receive <em>no trust score</em> (rendered as <code>N/A</code>, never <code>0</code>), and the decision engine will abstain rather than trust unvetted agents.
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Active Agent Profiles (Overall & Domain-Specific)</span>
+            <span id="reliabilitySourceBadge" class="badge badge-accent">Synthetic Repository</span>
+          </div>
+          <div class="table-container">
+            <table id="reliabilityTable">
+              <thead>
+                <tr>
+                  <th>Agent ID</th>
+                  <th>Category</th>
+                  <th>Trust Score</th>
+                  <th>Historical Accuracy</th>
+                  <th>Wilson 95% Bound</th>
+                  <th>Calibration (1-Brier)</th>
+                  <th>Evidence Quality</th>
+                  <th>Consistency</th>
+                  <th>Abstention Behavior</th>
+                  <th>Verified Samples</th>
+                </tr>
+              </thead>
+              <tbody id="reliabilityTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 3: EVIDENCE INSPECTOR ================= -->
+      <section id="view-evidence" class="tab-view" aria-labelledby="tab-evidence">
+        <div class="section-header">
+          <h2>Evidence Grounding & Citation Verification</h2>
+          <p>Deterministic heuristics verify cited references against ground-truth texts in <code>data/sources/</code> to detect hallucinations, contradictions, and unsupported claims.</p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Evaluated Citations</span>
+            <span class="badge badge-neutral">Ground-Truth Grounding</span>
+          </div>
+          <div class="table-container">
+            <table id="evidenceTable">
+              <thead>
+                <tr>
+                  <th>Agent</th>
+                  <th>Claim / Excerpt</th>
+                  <th>Reference Source</th>
+                  <th>Verification Status</th>
+                  <th>Method</th>
+                  <th>Verification Notes</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="evidenceTableBody">
+                <tr>
+                  <td colspan="7" class="empty-state">
+                    Run a task in the Decision Console to inspect cited evidence.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= VIEW 4: BENCHMARK ARENA ================= -->
+      <section id="view-benchmark" class="tab-view" aria-labelledby="tab-benchmark">
+        <div class="section-header">
+          <h2>Strategy Benchmark Arena</h2>
+          <p>Rigorous evaluation comparing <strong>Trust-Weighted Decision</strong> against three baseline mechanisms across a held-out test split of 360 tasks (including unanswerable tasks and clone models).</p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Benchmark Parameters</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <label for="benchmarkSeedInput" style="margin-bottom: 0;">Seed:</label>
+              <input type="number" id="benchmarkSeedInput" value="7" style="width: 70px; padding: 4px 8px;">
+              <button type="button" class="btn btn-primary" id="runBenchmarkBtn">
+                Run Benchmark
+              </button>
+            </div>
+          </div>
+
+          <div id="benchmarkLoading" class="loading-box" style="display: none;">
+            <div class="spinner"></div>
+            <div class="loading-text">Running benchmark across 360 development and 360 held-out test cases...</div>
+          </div>
+
+          <div id="benchmarkResults" style="display: none;">
+            <div id="benchmarkSummaryBanner" class="panel" style="background-color: var(--bg-surface-subtle); margin-bottom: 20px; padding: 14px 16px;">
+              <!-- Summary text -->
+            </div>
+
+            <!-- Strategy Comparison Table -->
+            <div class="panel">
+              <div class="panel-header">
+                <span class="panel-title">Held-Out Test Split Performance (Comparison of 4 Strategies)</span>
+              </div>
+              <div class="table-container">
+                <table id="benchmarkStrategiesTable">
+                  <thead>
+                    <tr>
+                      <th>Decision Strategy</th>
+                      <th>Total Cases</th>
+                      <th>Overall Accuracy</th>
+                      <th>95% Confidence Interval</th>
+                      <th>Abstention Rate</th>
+                      <th>Answered Cases</th>
+                      <th>Answered-Case Accuracy</th>
+                      <th>Brier Score</th>
+                    </tr>
+                  </thead>
+                  <tbody id="benchmarkStrategiesTableBody">
+                    <!-- Dynamically populated -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Agent Development Profiles Table -->
+            <div class="panel">
+              <div class="panel-header">
+                <span class="panel-title">Simulated Agent Profiles (Learned on Development Split)</span>
+              </div>
+              <div class="table-container">
+                <table id="benchmarkAgentsTable">
+                  <thead>
+                    <tr>
+                      <th>Agent ID</th>
+                      <th>Samples (n)</th>
+                      <th>Accuracy</th>
+                      <th>Wilson Lower 95%</th>
+                      <th>Calibration</th>
+                      <th>Evidence Quality</th>
+                      <th>Consistency</th>
+                      <th>Abstain Behavior</th>
+                      <th>Trust Score</th>
+                    </tr>
+                  </thead>
+                  <tbody id="benchmarkAgentsTableBody">
+                    <!-- Dynamically populated -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Source Document Modal Viewer -->
+    <div id="sourceModal" class="modal-backdrop" style="display: none;">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span class="modal-title" id="sourceModalTitle">Ground-Truth Source Document</span>
+          <button type="button" class="btn-close" id="closeSourceModalBtn" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <pre id="sourceModalContent" style="white-space: pre-wrap; font-family: var(--font-mono); font-size: 13px; line-height: 1.5; background: var(--bg-surface-subtle); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-light);"></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enterprise Decision Audit Certificate Modal -->
+    <div id="auditCertificateModal" class="modal-backdrop" style="display: none;">
+      <div class="modal-box" style="max-width: 820px;">
+        <div class="modal-header">
+          <span class="modal-title">TrustNet AI — Enterprise Decision Audit Certificate</span>
+          <button type="button" class="btn-close" id="closeAuditModalBtn" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body" id="auditModalBody" style="max-height: 75vh; overflow-y: auto;">
+          <!-- Dynamically populated certificate content -->
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 18px; border-top: 1px solid var(--border-light);">
+          <button type="button" class="btn btn-secondary" id="printAuditCertificateBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print / Save as PDF
+          </button>
+          <button type="button" class="btn btn-primary" id="dismissAuditModalBtn">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/api.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
