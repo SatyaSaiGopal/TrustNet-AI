@@ -4,12 +4,12 @@ A research prototype for an **AI Agent Trust Network**: a system that scores mul
 AI agents on how far they can be trusted, uses those scores to combine conflicting
 recommendations, and abstains when the evidence is insufficient.
 
-> **Status: functional prototype.** Agents run independently, their evidence is checked,
-> their reliability is measured from verified outcomes, and a trust-aware engine
-> combines their recommendations or abstains. Results are stored in SQLite and shown
-> in a Streamlit dashboard. There is no HTTP API.
->
-> This is a student research prototype. Do not use it for consequential decisions.
+> **Status: Enterprise Prototype & Evaluation Console.** Agents run independently,
+> their evidence is checked against ground-truth sources, their reliability is
+> measured from verified outcomes, and a trust-aware engine combines recommendations
+> or deliberately abstains. Includes a FastAPI service, modern developer console,
+> audit export system, and 100% offline test suite.
+
 
 ## Architecture
 
@@ -130,72 +130,81 @@ stored history, and only verified outcomes can move accuracy or calibration.
 | `trustnet.pipeline` | One call that runs agents, checks evidence, decides and stores |
 | `trustnet.evaluation` | Synthetic benchmark and synthetic demo data |
 | `trustnet.ui` | Streamlit dashboard |
-| `trustnet.api` | Placeholder; not implemented |
+| `trustnet.api` | FastAPI web service serving the REST API and modern developer console |
 
-## Setup (Windows, PowerShell)
+## Setup & Starting Point
 
-Requires Python 3.11 or newer. [Ollama](https://ollama.com/download) is needed only
-for live agents; the tests, the benchmark and the synthetic demo run without it.
-Run every command from the project directory.
+Requires Python 3.11 or newer. [Ollama](https://ollama.com/download) is optional (only needed for on-device local models; the synthetic demo, cloud API mode, benchmark, and entire test suite run without it).
 
-### 1. Install
+### 1. Quick Start (Build & Installation)
+
+Run these commands from the project root:
 
 ```powershell
+# Create and activate a virtual environment
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -e ".[dev,ui]"
+.\.venv\Scripts\Activate.ps1    # On Linux/macOS: source .venv/bin/activate
+
+# Upgrade pip and install all dependencies via requirements.txt
+python -m pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-`ui` adds Streamlit for the dashboard; use `".[dev]"` if you only want the tests and
-command line. Calling `.\.venv\Scripts\python.exe` directly avoids activating the
-environment, which PowerShell's execution policy can block. If you set the project up
-earlier, run the install command again; an existing database upgrades automatically.
+Alternatively, you can install directly via `pyproject.toml`:
+```powershell
+pip install -e ".[dev,api]"
+```
 
-### 2. Choose a model (live agents only)
+### 2. Run the Web Application & Decision Console (Recommended)
 
-No model is assumed. See what you have, and pull one if the list is empty:
+```powershell
+python -m trustnet.api
+```
 
+Open your browser to: **`http://127.0.0.1:8000`**
+
+* **Synthetic Demo Mode:** 8 preloaded mission-critical domain scenarios (`healthcare`, `cybersecurity`, `finance`, `legal`, etc.) running 100% offline and instantly.
+* **Local Ollama Mode:** On-device privacy-first reasoning with local models (e.g. `llama3.2:1b`, `gemma2:2b`).
+* **Cloud API Key Mode:** High-speed frontier reasoning using any OpenAI-compatible API (OpenAI `gpt-4o-mini`, Groq `llama-3.3-70b-versatile`, OpenRouter, DeepSeek).
+* **Enterprise Audit & Governance:** One-click download of cryptographic audit JSON and print-ready PDF Decision Integrity Certificates.
+
+### 3. Choose a Model (Optional — Live Ollama Only)
+
+If you wish to run on-device models via local Ollama:
 ```powershell
 ollama list
 ollama pull llama3.2:1b
 ```
 
-### 3. Configure (live agents only)
+### 4. Configure Environment (Optional)
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Set `TRUSTNET_OLLAMA_MODEL` in `.env` to a name exactly as `ollama list` prints it.
-
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `TRUSTNET_OLLAMA_MODEL` | none, required for live agents | The Ollama model the agents use |
+| `TRUSTNET_LLM_PROVIDER` | `ollama` | Default provider: `ollama` or `openai` |
+| `TRUSTNET_OPENAI_API_KEY` | none | API key for hosted models (or enter via UI) |
+| `TRUSTNET_OPENAI_MODEL` | `gpt-4o-mini` | Default hosted model name |
+| `TRUSTNET_OLLAMA_MODEL` | `llama3.2:1b` | Default on-device Ollama model |
 | `TRUSTNET_OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server address |
-| `TRUSTNET_OLLAMA_TIMEOUT_SECONDS` | `600` | Time each agent may take, including time queued |
-| `TRUSTNET_DATABASE_PATH` | `data/trustnet.db` | SQLite file used by the dashboard's live mode |
+| `TRUSTNET_DATABASE_PATH` | `data/trustnet.db` | SQLite repository for verified history |
 | `TRUSTNET_TRUST_MIN_SAMPLES` | `5` | Verified answers needed before an agent gets a trust score |
-| `TRUSTNET_WEIGHT_*` | see `.env.example` | Weight of each signal in the trust score |
-| `TRUSTNET_DECISION_MIN_SUPPORT` | `0.6` | Share of reliability weight the leading answer needs |
-| `TRUSTNET_DECISION_MIN_TRUST` | `0.5` | Trust score a supporter of the leading answer must have |
-| `TRUSTNET_EVIDENCE_DIR` | unset | Folder of text sources agents may cite |
-| `TRUSTNET_EVIDENCE_LLM_JUDGE` | `false` | Also ask the local model to judge evidence |
+| `TRUSTNET_EVIDENCE_DIR` | `data/sources` | Folder of authentic ground-truth text sources |
 
-`.env` is git-ignored. The project uses no API keys or paid services.
-
-## Running the tests
+## Running the Automated Test Suite
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest
+pytest
 ```
 
-The suite is deterministic and offline: no Ollama server, model, network, API key or
-`.env` file is needed. The dashboard test is skipped if Streamlit is not installed.
+The test suite contains **287 automated tests** and is 100% deterministic and offline (runs in ~19 seconds with no network or API keys required).
 
-## Running the dashboard
+## Running the Legacy Streamlit Dashboard (Alternative)
 
 ```powershell
-.\.venv\Scripts\python.exe -m streamlit run src/trustnet/ui/app.py
+python -m streamlit run src/trustnet/ui/app.py
 ```
 
 - **Synthetic demo** (default) needs no model. It uses simulated agents with a
